@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>민원서비스 검색 및 안내</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+        /* Custom smooth scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-blue-600 text-white rounded-lg shadow-md">
+                    <i data-lucide="file-text" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 tracking-tight">민원서비스 포털</h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">정부 및 지자체 민원안내 통합 검색</p>
+                </div>
+            </div>
+            <div class="text-xs text-slate-500 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+                <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
+                실시간 서비스 가동 중
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        
+        <!-- Controls & Filters Section -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 mb-6 space-y-5">
+            <!-- Search & Dropdown Controls -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <!-- Search Input -->
+                <div class="relative md:col-span-8 lg:col-span-9">
+                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="찾으시는 민원서비스명을 입력하세요 (예: 주민등록, 여권, 건축)" 
+                        class="w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition duration-150"
+                    >
+                    <button 
+                        id="clearSearchBtn" 
+                        class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                        title="검색어 지우기"
+                    >
+                        <i data-lucide="x-circle" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Dropdown Select (Alternative filter for small devices / layout convenience) -->
+                <div class="md:col-span-4 lg:col-span-3">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="filter" class="w-4 h-4"></i>
+                        </div>
+                        <select 
+                            id="categorySelect" 
+                            class="w-full pl-10 pr-8 py-3 bg-slate-50 border border-slate-300 rounded-xl text-slate-800 text-sm appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white cursor-pointer transition duration-150"
+                        >
+                            <option value="전체">전체 분야 보기</option>
+                            <option value="주민등록">주민등록</option>
+                            <option value="건축">건축</option>
+                            <option value="세무">세무</option>
+                            <option value="복지">복지</option>
+                            <option value="교통">교통</option>
+                            <option value="환경">환경</option>
+                            <option value="위생">위생</option>
+                            <option value="여권">여권</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Filter Tabs (Horizontal Scrollable) -->
+            <div class="pt-2 border-t border-slate-100">
+                <div class="text-xs font-semibold text-slate-400 mb-2.5 flex items-center gap-1">
+                    <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                    <span>분야별 빠르게 보기</span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="categoryTabs">
+                    <!-- Dynamic tabs will be active via JS, rendering static list for accessibility -->
+                    <button data-category="전체" class="category-tab active px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-blue-600 text-white shadow-sm">전체</button>
+                    <button data-category="주민등록" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">주민등록</button>
+                    <button data-category="건축" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">건축</button>
+                    <button data-category="세무" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">세무</button>
+                    <button data-category="복지" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">복지</button>
+                    <button data-category="교통" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">교통</button>
+                    <button data-category="환경" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">환경</button>
+                    <button data-category="위생" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">위생</button>
+                    <button data-category="여권" class="category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">여권</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Result Bar & Counter -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-2">
+            <div id="resultCountText" class="text-sm font-medium text-slate-600 flex items-center gap-1.5">
+                <span>전체 <strong class="text-blue-600 font-bold" id="totalCount">22</strong>건 중 <strong class="text-blue-600 font-bold" id="filteredCount">22</strong>건 조회됨</span>
+            </div>
+            
+            <div class="flex items-center justify-between sm:justify-end gap-3 text-xs text-slate-500">
+                <button id="resetFiltersBtn" class="inline-flex items-center gap-1 text-slate-500 hover:text-blue-600 transition">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                    <span>필터 초기화</span>
+                </button>
+                
+                <div class="h-3 w-px bg-slate-300"></div>
+
+                <!-- Display Mode Switcher (Desktop/Tablet) -->
+                <div class="flex items-center bg-slate-200 p-0.5 rounded-lg">
+                    <button id="viewGridBtn" class="p-1 rounded text-slate-700 bg-white shadow-xs" title="카드형 보기">
+                        <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                    </button>
+                    <button id="viewTableBtn" class="p-1 rounded text-slate-500 hover:text-slate-700" title="테이블형 보기">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service List Grid View -->
+        <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+            <!-- Dynamic Content Output Here -->
+        </div>
+
+        <!-- Service List Table View (Hidden by Default or for Large Screens) -->
+        <div id="tableView" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100/70 text-slate-600 text-xs uppercase tracking-wider border-b border-slate-200">
+                            <th class="py-3.5 px-4 font-semibold">서비스명</th>
+                            <th class="py-3.5 px-4 font-semibold">소관기관</th>
+                            <th class="py-3.5 px-4 font-semibold">민원분야</th>
+                            <th class="py-3.5 px-4 font-semibold text-center">온라인처리</th>
+                            <th class="py-3.5 px-4 font-semibold text-right">처리기한</th>
+                            <th class="py-3.5 px-4 font-semibold text-right">수수료</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
+                        <!-- Dynamic Content Output Here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden bg-white rounded-2xl border border-dashed border-slate-300 p-12 text-center my-6">
+            <div class="mx-auto w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+                <i data-lucide="search-x" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-semibold text-slate-800 mb-1">검색 결과가 없습니다</h3>
+            <p class="text-xs text-slate-500 mb-4">입력하신 검색어나 선택한 필터 조건에 일치하는 민원이 없습니다.</p>
+            <button id="emptyResetBtn" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg text-xs font-semibold hover:bg-blue-100 transition">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                전체 목록 보기
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4">
+            <p>© 2026 대한민국 민원서비스 안내 포털. 모든 데이터는 최신 표준에 맞추어 제공됩니다.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Data constant
+        const rawData = [
+            {"서비스ID": "S001", "서비스명": "주민등록등본 발급", "소관기관": "주민센터", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 7, "수수료": 500},
+            {"서비스ID": "S002", "서비스명": "전입신고", "소관기관": "복지정책과", "민원분야": "주민등록", "온라인처리": "불가", "처리기한일": 1, "수수료": 0},
+            {"서비스ID": "S003", "서비스명": "인감증명 발급", "소관기관": "복지정책과", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 1, "수수료": 0},
+            {"서비스ID": "S004", "서비스명": "주민등록증 재발급", "소관기관": "건축과", "민원분야": "주민등록", "온라인처리": "가능", "처리기한일": 0, "수수료": 0},
+            {"서비스ID": "S005", "서비스명": "건축물대장 발급", "소관기관": "구청 민원봉사과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 0, "수수료": 1000},
+            {"서비스ID": "S006", "서비스명": "건축허가 신청", "소관기관": "건축과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 1, "수수료": 2000},
+            {"서비스ID": "S007", "서비스명": "용도변경 신고", "소관기관": "시청 민원과", "민원분야": "건축", "온라인처리": "불가", "처리기한일": 0, "수수료": 0},
+            {"서비스ID": "S008", "서비스명": "지방세 납부확인서", "소관기관": "건축과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 1, "수수료": 1000},
+            {"서비스ID": "S009", "서비스명": "취득세 신고", "소관기관": "교통행정과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 0, "수수료": 0},
+            {"서비스ID": "S010", "서비스명": "재산세 조회", "소관기관": "교통행정과", "민원분야": "세무", "온라인처리": "가능", "처리기한일": 3, "수수료": 0},
+            {"서비스ID": "S011", "서비스명": "기초연금 신청", "소관기관": "건축과", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 7, "수수료": 500},
+            {"서비스ID": "S012", "서비스명": "복지급여 조회", "소관기관": "시청 민원과", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 14, "수수료": 5000},
+            {"서비스ID": "S013", "서비스명": "장애인 등록", "소관기관": "주민센터", "민원분야": "복지", "온라인처리": "가능", "처리기한일": 5, "수수료": 0},
+            {"서비스ID": "S014", "서비스명": "자동차 등록", "소관기관": "주민센터", "민원분야": "교통", "온라인처리": "가능", "처리기한일": 1, "수수료": 5000},
+            {"서비스ID": "S015", "서비스명": "운전면허 갱신", "소관기관": "교통행정과", "민원분야": "교통", "온라인처리": "불가", "처리기한일": 1, "수수료": 0},
+            {"서비스ID": "S016", "서비스명": "주정차 위반 조회", "소관기관": "주민센터", "민원분야": "교통", "온라인처리": "가능", "처리기한일": 7, "수수료": 1000},
+            {"서비스ID": "S017", "서비스명": "배출시설 신고", "소관기관": "주민센터", "민원분야": "환경", "온라인처리": "가능", "처리기한일": 1, "수수료": 0},
+            {"서비스ID": "S018", "서비스명": "폐기물 처리 신청", "소관기관": "시청 민원과", "민원분야": "환경", "온라인처리": "가능", "처리기한일": 14, "수수료": 5000},
+            {"서비스ID": "S019", "서비스명": "식품영업 신고", "소관기관": "건축과", "민원분야": "위생", "온라인처리": "가능", "처리기한일": 3, "수수료": 2000},
+            {"서비스ID": "S020", "서비스명": "위생업소 조회", "소관기관": "시청 민원과", "민원분야": "위생", "온라인처리": "불가", "처리기한일": 7, "수수료": 500},
+            {"서비스ID": "S021", "서비스명": "여권 발급 신청", "소관기관": "건축과", "민원분야": "여권", "온라인처리": "가능", "처리기한일": 7, "수수료": 1000},
+            {"서비스ID": "S022", "서비스명": "여권 재발급", "소관기관": "교통행정과", "민원분야": "여권", "온라인처리": "가능", "처리기한일": 1, "수수료": 1000}
+        ];
+
+        // State Management
+        let currentSearchQuery = '';
+        let currentCategory = '전체';
+        let currentView = 'grid'; // 'grid' or 'table'
+
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const categorySelect = document.getElementById('categorySelect');
+        const categoryTabs = document.querySelectorAll('.category-tab');
+        const gridView = document.getElementById('gridView');
+        const tableView = document.getElementById('tableView');
+        const tableBody = document.getElementById('tableBody');
+        const emptyState = document.getElementById('emptyState');
+        const totalCountEl = document.getElementById('totalCount');
+        const filteredCountEl = document.getElementById('filteredCount');
+        const resetFiltersBtn = document.getElementById('resetFiltersBtn');
+        const emptyResetBtn = document.getElementById('emptyResetBtn');
+        const viewGridBtn = document.getElementById('viewGridBtn');
+        const viewTableBtn = document.getElementById('viewTableBtn');
+
+        // Format Fee Helpers
+        function formatFee(fee) {
+            if (fee === 0) return '<span class="text-emerald-600 font-semibold">무료</span>';
+            return `${fee.toLocaleString()}원`;
+        }
+
+        // Format Period Helpers
+        function formatPeriod(days) {
+            if (days === 0) return '<span class="text-blue-600 font-semibold">즉시</span>';
+            return `${days}일`;
+        }
+
+        // Category Badge Colors
+        function getCategoryStyle(category) {
+            const styles = {
+                '주민등록': 'bg-blue-50 text-blue-700 border-blue-200',
+                '건축': 'bg-amber-50 text-amber-700 border-amber-200',
+                '세무': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                '복지': 'bg-purple-50 text-purple-700 border-purple-200',
+                '교통': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+                '환경': 'bg-teal-50 text-teal-700 border-teal-200',
+                '위생': 'bg-rose-50 text-rose-700 border-rose-200',
+                '여권': 'bg-sky-50 text-sky-700 border-sky-200'
+            };
+            return styles[category] || 'bg-slate-100 text-slate-700 border-slate-200';
+        }
+
+        // Render Function
+        function render() {
+            // Filter logic: Keyword (서비스명) AND Category (민원분야)
+            const filteredData = rawData.filter(item => {
+                const matchesSearch = item.서비스명.toLowerCase().includes(currentSearchQuery.toLowerCase());
+                const matchesCategory = currentCategory === '전체' || item.민원분야 === currentCategory;
+                return matchesSearch && matchesCategory;
+            });
+
+            // Update Counters
+            totalCountEl.textContent = rawData.length;
+            filteredCountEl.textContent = filteredData.length;
+
+            // Handle empty state
+            if (filteredData.length === 0) {
+                gridView.classList.add('hidden');
+                tableView.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            // Render View Depending on Selection
+            if (currentView === 'grid') {
+                gridView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+                renderGrid(filteredData);
+            } else {
+                gridView.classList.add('hidden');
+                tableView.classList.remove('hidden');
+                renderTable(filteredData);
+            }
+
+            // Re-initialize Lucide Icons for rendered content
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        // Render Cards (Grid)
+        function renderGrid(data) {
+            gridView.innerHTML = data.map(item => {
+                const isOnlineAvailable = item.온라인처리 === '가능';
+                const categoryStyle = getCategoryStyle(item.민원분야);
+                
+                return `
+                    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between hover:border-slate-300">
+                        <div>
+                            <!-- Header Info -->
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <span class="px-2.5 py-0.5 text-xs font-semibold rounded-full border ${categoryStyle}">
+                                    ${item.민원분야}
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-medium ${
+                                    isOnlineAvailable 
+                                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                        : 'bg-slate-100 text-slate-500 border border-slate-200'
+                                }">
+                                    <i data-lucide="${isOnlineAvailable ? 'globe' : 'building-2'}" class="w-3 h-3"></i>
+                                    온라인 ${item.온라인처리}
+                                </span>
+                            </div>
+
+                            <!-- Service Title -->
+                            <h3 class="text-base font-bold text-slate-900 mb-1 leading-snug hover:text-blue-600 transition">
+                                ${item.서비스명}
+                            </h3>
+                            
+                            <p class="text-xs text-slate-500 flex items-center gap-1 mb-4">
+                                <i data-lucide="building" class="w-3.5 h-3.5 text-slate-400"></i>
+                                ${item.소관기관}
+                            </p>
+                        </div>
+
+                        <!-- Card Footer Info -->
+                        <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-50 p-2 rounded-lg">
+                                <span class="text-slate-400 block text-[10px]">처리기한</span>
+                                <span class="font-medium text-slate-700 flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="clock" class="w-3 h-3 text-slate-400"></i>
+                                    ${formatPeriod(item.처리기한일)}
+                                </span>
+                            </div>
+                            <div class="bg-slate-50 p-2 rounded-lg">
+                                <span class="text-slate-400 block text-[10px]">수수료</span>
+                                <span class="font-medium text-slate-700 flex items-center gap-1 mt-0.5">
+                                    <i data-lucide="credit-card" class="w-3 h-3 text-slate-400"></i>
+                                    ${formatFee(item.수수료)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Render Table Rows
+        function renderTable(data) {
+            tableBody.innerHTML = data.map(item => {
+                const isOnlineAvailable = item.온라인처리 === '가능';
+                const categoryStyle = getCategoryStyle(item.민원분야);
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition duration-150">
+                        <td class="py-3.5 px-4 font-semibold text-slate-900">
+                            ${item.서비스명}
+                        </td>
+                        <td class="py-3.5 px-4 text-slate-600 text-xs">
+                            ${item.소관기관}
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full border ${categoryStyle}">
+                                ${item.민원분야}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-center">
+                            <span class="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                                isOnlineAvailable 
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                                    : 'bg-slate-100 text-slate-500 border border-slate-200'
+                            }">
+                                ${item.온라인처리}
+                            </span>
+                        </td>
+                        <td class="py-3.5 px-4 text-right text-slate-700 font-medium">
+                            ${formatPeriod(item.처리기한일)}
+                        </td>
+                        <td class="py-3.5 px-4 text-right text-slate-700 font-medium">
+                            ${formatFee(item.수수료)}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Event Listeners Function
+        function setupEventListeners() {
+            // Search Input Listener
+            searchInput.addEventListener('input', (e) => {
+                currentSearchQuery = e.target.value.trim();
+                clearSearchBtn.classList.toggle('hidden', currentSearchQuery.length === 0);
+                render();
+            });
+
+            // Clear Search Button
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                currentSearchQuery = '';
+                clearSearchBtn.classList.add('hidden');
+                searchInput.focus();
+                render();
+            });
+
+            // Category Dropdown Listener
+            categorySelect.addEventListener('change', (e) => {
+                updateCategory(e.target.value);
+            });
+
+            // Category Tabs Listener
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const selectedCategory = tab.getAttribute('data-category');
+                    updateCategory(selectedCategory);
+                });
+            });
+
+            // Reset Filters Listener
+            const resetAction = () => {
+                currentSearchQuery = '';
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                updateCategory('전체');
+            };
+
+            resetFiltersBtn.addEventListener('click', resetAction);
+            emptyResetBtn.addEventListener('click', resetAction);
+
+            // View Switcher Buttons
+            viewGridBtn.addEventListener('click', () => {
+                currentView = 'grid';
+                viewGridBtn.className = "p-1 rounded text-slate-700 bg-white shadow-xs";
+                viewTableBtn.className = "p-1 rounded text-slate-500 hover:text-slate-700";
+                render();
+            });
+
+            viewTableBtn.addEventListener('click', () => {
+                currentView = 'table';
+                viewTableBtn.className = "p-1 rounded text-slate-700 bg-white shadow-xs";
+                viewGridBtn.className = "p-1 rounded text-slate-500 hover:text-slate-700";
+                render();
+            });
+        }
+
+        // Sync Dropdown and Tabs state
+        function updateCategory(newCategory) {
+            currentCategory = newCategory;
+            
+            // Sync Dropdown
+            categorySelect.value = newCategory;
+
+            // Sync Tabs UI
+            categoryTabs.forEach(tab => {
+                const tabCat = tab.getAttribute('data-category');
+                if (tabCat === newCategory) {
+                    tab.className = "category-tab active px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-blue-600 text-white shadow-sm";
+                } else {
+                    tab.className = "category-tab px-3.5 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200";
+                }
+            });
+
+            render();
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            render();
+        });
+    </script>
+</body>
+</html>
